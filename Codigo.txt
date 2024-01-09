@@ -1,0 +1,1004 @@
+classdef SimulacionPistaCarreras < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure                       matlab.ui.Figure
+        GridLayout                     matlab.ui.container.GridLayout
+        LeftPanel                      matlab.ui.container.Panel
+        IniciarsimulacionButton        matlab.ui.control.Button
+        Masa                           matlab.ui.control.NumericEditField
+        coeficientefriccionestaticaLabel_3  matlab.ui.control.Label
+        FriccionCinetica               matlab.ui.control.NumericEditField
+        coeficientefriccionestaticaLabel_2  matlab.ui.control.Label
+        FriccionEstatica               matlab.ui.control.NumericEditField
+        coeficientefriccionestaticaLabel  matlab.ui.control.Label
+        Y4EditFieldLabel               matlab.ui.control.Label
+        X4EditFieldLabel               matlab.ui.control.Label
+        GraficarpistaButton            matlab.ui.control.Button
+        Y4                             matlab.ui.control.NumericEditField
+        X4                             matlab.ui.control.NumericEditField
+        Y3                             matlab.ui.control.NumericEditField
+        Y3EditFieldLabel               matlab.ui.control.Label
+        X3                             matlab.ui.control.NumericEditField
+        X3EditFieldLabel               matlab.ui.control.Label
+        Y2                             matlab.ui.control.NumericEditField
+        Y2EditFieldLabel               matlab.ui.control.Label
+        X2                             matlab.ui.control.NumericEditField
+        X2EditFieldLabel               matlab.ui.control.Label
+        Y1                             matlab.ui.control.NumericEditField
+        Y1EditFieldLabel               matlab.ui.control.Label
+        X1                             matlab.ui.control.NumericEditField
+        X1EditFieldLabel               matlab.ui.control.Label
+        VelocidadAuto                  matlab.ui.control.NumericEditField
+        VelodicadautoEditFieldLabel    matlab.ui.control.Label
+        RightPanel                     matlab.ui.container.Panel
+        TabGroup                       matlab.ui.container.TabGroup
+        GraficapistaTab                matlab.ui.container.Tab
+        LonguitudEditField_2           matlab.ui.control.EditField
+        LonguitudEditField_2Label      matlab.ui.control.Label
+        LonguitudEditField             matlab.ui.control.EditField
+        LonguitudEditFieldLabel        matlab.ui.control.Label
+        VelocidadMaximaPistaEditField  matlab.ui.control.NumericEditField
+        VelocidadMaximaPistaEditFieldLabel  matlab.ui.control.Label
+        MenorRadioCurvatura_2          matlab.ui.control.EditField
+        MenorradiodesegundacuvaLabel   matlab.ui.control.Label
+        MenorRadioCurvatura            matlab.ui.control.EditField
+        MenorradiodeprimeracurvaLabel  matlab.ui.control.Label
+        LonguitudArco                  matlab.ui.control.EditField
+        LoguituddearcopistacompletaLabel  matlab.ui.control.Label
+        UIAxesPistaCompleta            matlab.ui.control.UIAxes
+        SimulacionTab                  matlab.ui.container.Tab
+        TiempoconducidosegundosEditField  matlab.ui.control.NumericEditField
+        TiempoconducidosegundosEditFieldLabel  matlab.ui.control.Label
+        DistanciarecorridatotalEditField  matlab.ui.control.NumericEditField
+        DistanciarecorridatotalEditFieldLabel  matlab.ui.control.Label
+        VelocidadmaximaEditField       matlab.ui.control.NumericEditField
+        VelocidadmaximaEditFieldLabel  matlab.ui.control.Label
+        DistanciaderrapadaEditField    matlab.ui.control.NumericEditField
+        DistanciaderrapadaEditFieldLabel  matlab.ui.control.Label
+        EnergiacineticaperdidaEditField  matlab.ui.control.NumericEditField
+        EnergiacineticaperdidaEditFieldLabel  matlab.ui.control.Label
+        Radio                          matlab.ui.control.NumericEditField
+        RadiodecuvaturaEditFieldLabel  matlab.ui.control.Label
+        UIAxesSimulacion               matlab.ui.control.UIAxes
+    end
+
+    % Properties that correspond to apps with auto-reflow
+    properties (Access = private)
+        onePanelWidth = 576;
+    end
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Button pushed function: GraficarpistaButton
+        function GraficarpistaButtonPushed(app, event)
+            
+            cla(app.UIAxesPistaCompleta,"reset")
+            fricStatica = app.FriccionEstatica.Value;
+            
+
+           
+
+            %ASSIGNACION DE CORDENADAS
+            %========================
+            x1 = app.X1.Value;
+            y1 = app.Y1.Value;
+            
+            x2 = app.X2.Value;
+            y2 = app.Y2.Value;
+            
+            x3 = app.X3.Value;
+            y3 = app.Y3.Value;
+            
+            x4 = app.X4.Value;
+            y4 = app.Y4.Value;
+            %=====================
+            
+            %CALCULANDO COEFICIENTES
+            
+            %Matriz
+            A = [x1^3 x1^2 x1 1;
+                x2^3 x2^2 x2 1;
+                x3^3 x3^2 x3 1;
+                x4^3 x4^2 x4 1];
+            Y = [y1; y2; y3; y4];
+            
+            %Calculando los coeficiente
+            x = inv(A)*Y;
+            coef = x; %vector de coeficientes
+            %===================
+            
+            % MAXIMOS Y MINIMOS
+            
+            %Calculando minimos y maximos usando la derivada y formula general
+            aPC = coef(1)*3;
+            bPC =coef(2)*2;
+            cPC =coef(3);
+            MinMax1 = (-bPC+sqrt(bPC^2-(4*aPC*cPC)))/(2*aPC);
+            MinMax2 = (-bPC-sqrt(bPC^2-(4*aPC*cPC)))/(2*aPC);
+            
+            %Imprimiendo en la grafica minimos y maximos
+            %Pista
+            plot(app.UIAxesPistaCompleta,MinMax1,coef(1).*MinMax1.^3+coef(2).*MinMax1.^2+coef(3).*MinMax1+coef(4),'r-o')
+            hold(app.UIAxesPistaCompleta,"on")
+            
+            plot(app.UIAxesPistaCompleta,MinMax2,coef(1).*MinMax2.^3+coef(2).*MinMax2.^2+coef(3).*MinMax2+coef(4),'r-o')
+            hold(app.UIAxesPistaCompleta,"on")
+            %===================
+            
+            %RADIO DE CURBATURA
+            
+            %coeficiente de la primera derivada
+            a1g = coef(1)*3;
+            b1g =coef(2)*2;
+            c1g =coef(3);
+            
+            %Coeficiente de la segunda derivada
+            a2g = a1g*2;
+            b2g =b1g;
+            
+            % MinMax1 es el primer punto critico y MinMax2 es el segundo(se sacaron en el apartado de puntos criticos)
+            primDeri1 = a1g.*MinMax1.^2+b1g.*MinMax1+c1g;
+            segunDeri1 = a2g.*MinMax1+b2g;
+            RadioCurbatura1 = ((1+primDeri1.^2).^3/2)./abs(segunDeri1);
+            app.MenorRadioCurvatura.Value = num2str(RadioCurbatura1,2);
+            
+            primDeri2 = a1g.*MinMax2.^2+b1g.*MinMax2+c1g;
+            segunDeri2 = a2g.*MinMax2+b2g;
+            RadioCurbatura2 = ((1+primDeri2.^2).^3/2)./abs(segunDeri2);
+            app.MenorRadioCurvatura_2.Value = num2str(RadioCurbatura2,2);
+
+            if RadioCurbatura1 <= RadioCurbatura2
+         
+                velociadMaxima = sqrt(9.81*fricStatica*RadioCurbatura1);
+                app.VelocidadMaximaPistaEditField.Value = velociadMaxima;
+            else
+                
+                velociadMaxima = sqrt(9.81*fricStatica*RadioCurbatura2);
+                app.VelocidadMaximaPistaEditField.Value = velociadMaxima;
+            end
+            %=======================
+            
+            % LONGITUD DE ARCO (se usaron datos datos del apartado de radio de curbatura)
+            
+            funcionLongitudArco = @(x) sqrt(1+(a1g.*x.^2+b1g.*x+c1g).^2);% funcion
+            IntegralLonguitudArco = integral(funcionLongitudArco,x1,x4);% integrando la funcion y sacando la longuitud de arco
+            
+            longuitud_de_arco = num2str(IntegralLonguitudArco,7); % convirtiendo en texto la longuitud de arco
+
+            app.LonguitudArco.Value = num2str(longuitud_de_arco,3);
+            
+            %==========================
+            
+            %RADIO CRITICO
+  
+            %Econtrando donde empieza la zona de riesgo
+            Xmin1 = x1;
+            RadioCurbaturaMomentanio = 101;
+            while (RadioCurbaturaMomentanio > 100)
+            
+            primDeri2 = a1g.*Xmin1.^2+b1g.*Xmin1+c1g;
+            segunDeri2 = a2g.*Xmin1+b2g;
+            RadioCurbaturaMomentanio = ((1+primDeri2.^2).^3/2)./abs(segunDeri2);
+            Xmin1 = Xmin1 + 0.1;
+            
+            end
+            
+            
+            %Generando la recta tangente
+            pendienteXmin1 = a1g.*Xmin1.^2+b1g.*Xmin1+c1g;
+            valorYXmin1 = coef(1)*Xmin1^3+coef(2)*Xmin1^2+coef(3)*Xmin1+coef(4);
+            ValorBXmin1 = valorYXmin1 - (pendienteXmin1*Xmin1);
+            FuncionRectaTanXmin1 = @(x) pendienteXmin1.*x+ValorBXmin1;
+            %graficando la recta tangente
+            x =linspace(Xmin1,Xmin1+200,2);
+            plot(app.UIAxesPistaCompleta,x,FuncionRectaTanXmin1(x),"red")
+            hold(app.UIAxesPistaCompleta,"on")
+            
+            %Recta perpendicular
+            valorBXmin1Per =  valorYXmin1 - ((-1/pendienteXmin1)*Xmin1);
+            FuncionRectaPerXmin1 = @(x) (-1/pendienteXmin1).*x+valorBXmin1Per;
+            %graficando recta perpendicular
+            x =linspace(Xmin1,Xmin1-100,2);
+            plot(app.UIAxesPistaCompleta,x,FuncionRectaPerXmin1(x),"g")
+            hold(app.UIAxesPistaCompleta,"on")
+            
+            %Graficando las gradas
+            FuncionRectaTanXmin1 = @(x) pendienteXmin1.*x+(ValorBXmin1+20);
+            x =linspace(Xmin1,Xmin1+80,20);
+            plot(app.UIAxesPistaCompleta,x,FuncionRectaTanXmin1(x),"b","LineWidth",0.5,"Marker","o",MarkerSize=6)
+            hold(app.UIAxesPistaCompleta,"on")
+            
+
+            
+            %=================
+            
+            %Econtrando hasta donde llega la primera zona de riesgo
+            
+            Xmin2 = Xmin1;
+            while (RadioCurbaturaMomentanio < 100)
+            
+            primDeri2 = a1g.*Xmin2.^2+b1g.*Xmin2+c1g;
+            segunDeri2 = a2g.*Xmin2+b2g;
+            RadioCurbaturaMomentanio = ((1+primDeri2.^2).^3/2)./abs(segunDeri2);
+            Xmin2 = Xmin2 + 0.1;
+            
+            end
+
+
+            
+            %===========================
+            
+            %Econtrando donde empieza la segunda zona de riesgo
+            Xmax1 = Xmin2;
+            while (RadioCurbaturaMomentanio > 100)
+            
+            primDeri2 = a1g.*Xmax1.^2+b1g.*Xmax1+c1g;
+            segunDeri2 = a2g.*Xmax1+b2g;
+            RadioCurbaturaMomentanio = ((1+primDeri2.^2).^3/2)./abs(segunDeri2);
+            Xmax1 = Xmax1 + 0.1;
+            
+            end
+            
+            %Generando la recta tangente
+            pendienteXmax1 = a1g.*Xmax1.^2+b1g.*Xmax1+c1g;
+            valorYXmax1 = coef(1)*Xmax1^3+coef(2)*Xmax1^2+coef(3)*Xmax1+coef(4);
+            ValorBXmax1 = valorYXmax1 - (pendienteXmax1*Xmax1);
+            FuncionRectaTanXmax1 = @(x) pendienteXmax1.*x+ValorBXmax1;
+            %graficando la recta tangente
+            x =linspace(Xmax1,Xmax1+200,2);
+            plot(app.UIAxesPistaCompleta,x,FuncionRectaTanXmax1(x),"red")
+            hold(app.UIAxesPistaCompleta,"on")
+            
+            %Recta perpendicular
+            valorBXmax1Per =  valorYXmax1 - ((-1/pendienteXmax1)*Xmax1);
+            FuncionRectaPerXmin1 = @(x) (-1/pendienteXmax1).*x+valorBXmax1Per;
+            %graficando recta perpendicular
+            x =linspace(Xmax1,Xmax1-100,2);
+            plot(app.UIAxesPistaCompleta,x,FuncionRectaPerXmin1(x),"g")
+            hold(app.UIAxesPistaCompleta,"on")
+            
+            
+            %Graficando las gradas
+            FuncionRectaTanXmax1 = @(x) pendienteXmax1.*x+(ValorBXmax1-20);
+            x =linspace(Xmax1,Xmax1+80,20);
+            plot(app.UIAxesPistaCompleta,x,FuncionRectaTanXmax1(x),"b","LineWidth",0.5,"Marker","o",MarkerSize=6)
+            hold(app.UIAxesPistaCompleta,"on")
+
+
+            
+            %=======================
+            
+            %Econtrando donde termina la zona de riesgo
+            
+            Xmax2 = Xmax1;
+            while (RadioCurbaturaMomentanio < 100)
+            
+            primDeri2 = a1g.*Xmax2.^2+b1g.*Xmax2+c1g;
+            segunDeri2 = a2g.*Xmax2+b2g;
+            RadioCurbaturaMomentanio = ((1+primDeri2.^2).^3/2)./abs(segunDeri2);
+            Xmax2 = Xmax2 + 0.1;
+             
+            end
+
+            IntegralLonguitudArco = integral(funcionLongitudArco,Xmin1,Xmin2);% integrando la funcion y sacando la longuitud de arco
+            longuitud_de_arco = num2str(IntegralLonguitudArco,7); % convirtiendo en texto la longuitud de arco
+            app.LonguitudEditField.Value = longuitud_de_arco;3;
+            
+            IntegralLonguitudArco = integral(funcionLongitudArco,Xmax1,Xmax2);% integrando la funcion y sacando la longuitud de arco
+            longuitud_de_arco = num2str(IntegralLonguitudArco,7); % convirtiendo en texto la longuitud de arco
+
+            app.LonguitudEditField_2.Value = longuitud_de_arco;3;
+            
+                        %GRAFICANDO LA FUNCION
+            
+            %Usnado la funcion cuadratica con los coeficientes conseguidos
+            yf = @(z) coef(1).*z.^3+coef(2).*z.^2+coef(3).*z+coef(4);
+            
+            %Imprimiendo en pantalla
+            zv =linspace(x1,Xmin1,10000);
+            plot(app.UIAxesPistaCompleta,zv,yf(zv),"black","LineWidth",1.5,"LineStyle","--")
+            hold(app.UIAxesPistaCompleta,"on")
+
+            zv =linspace(Xmin1,Xmin2,10000);
+            plot(app.UIAxesPistaCompleta,zv,yf(zv),"y","LineWidth",1.5,"LineStyle","--")
+            hold(app.UIAxesPistaCompleta,"on")
+
+            zv =linspace(Xmin2,Xmax1,10000);
+            plot(app.UIAxesPistaCompleta,zv,yf(zv),"black","LineWidth",1.5,"LineStyle","--")
+            hold(app.UIAxesPistaCompleta,"on")
+
+            zv =linspace(Xmax1,Xmax2,10000);
+            plot(app.UIAxesPistaCompleta,zv,yf(zv),"y","LineWidth",1.5,"LineStyle","--")
+            hold(app.UIAxesPistaCompleta,"on")
+
+            zv =linspace(Xmax2,x4,10000);
+            plot(app.UIAxesPistaCompleta,zv,yf(zv),"black","LineWidth",1.5,"LineStyle","--")
+            hold(app.UIAxesPistaCompleta,"on")
+
+
+            plot(app.UIAxesPistaCompleta,x1,y1,'r-o')
+            hold(app.UIAxesPistaCompleta,"on")
+
+            plot(app.UIAxesPistaCompleta,x2,y2,'r-o')
+            hold(app.UIAxesPistaCompleta,"on")
+
+            plot(app.UIAxesPistaCompleta,x3,y3,'r-o')
+            hold(app.UIAxesPistaCompleta,"on")
+
+            plot(app.UIAxesPistaCompleta,x4,y4,'r-o')
+            hold(app.UIAxesPistaCompleta,"on")
+            %===================
+            
+            %Graficando los puntos de inicio de las curvas
+            plot(app.UIAxesPistaCompleta,Xmin1,coef(1).*Xmin1.^3+coef(2).*Xmin1.^2+coef(3).*Xmin1+coef(4),'r-o')
+            hold(app.UIAxesPistaCompleta,"on")
+            plot(app.UIAxesPistaCompleta,Xmin2,coef(1).*Xmin2.^3+coef(2).*Xmin2.^2+coef(3).*Xmin2+coef(4),'r-o')
+            hold(app.UIAxesPistaCompleta,"on")
+            plot(app.UIAxesPistaCompleta,Xmax1,coef(1).*Xmax1.^3+coef(2).*Xmax1.^2+coef(3).*Xmax1+coef(4),'r-o')
+            hold(app.UIAxesPistaCompleta,"on")
+            plot(app.UIAxesPistaCompleta,Xmax2,coef(1).*Xmax2.^3+coef(2).*Xmax2.^2+coef(3).*Xmax2+coef(4),'r-o')
+            hold(app.UIAxesPistaCompleta,"off")
+
+
+
+
+
+            
+
+        end
+
+        % Button pushed function: IniciarsimulacionButton
+        function IniciarsimulacionButtonPushed(app, event)
+
+            cla(app.UIAxesSimulacion,"reset")
+            
+            app.EnergiacineticaperdidaEditField.Value = 0;
+            app.DistanciaderrapadaEditField.Value = 0;
+            app.VelocidadmaximaEditField.Value = 0;
+            app.Radio.Value = 0;
+            app.DistanciarecorridatotalEditField.Value = 0;
+
+            %ASIGNACION VALORES
+            velocidadConstanteCoche = app.VelocidadAuto.Value;
+            cfricEstatica = app.FriccionEstatica.Value;
+            cfricCinetica = app.FriccionCinetica.Value;
+            masa = app.Masa.Value;
+            total_energia_kinetica_perdida = 0;
+            distaciaRecorrida = 0;
+            
+            %ASSIGNACION DE CORDENADAS
+            %========================
+            x1 = app.X1.Value;
+            y1 = app.Y1.Value;
+            
+            x2 = app.X2.Value;
+            y2 = app.Y2.Value;
+            
+            x3 = app.X3.Value;
+            y3 = app.Y3.Value;
+            
+            x4 = app.X4.Value;
+            y4 = app.Y4.Value;
+            %=====================
+            
+            %CALCULANDO COEFICIENTES
+            
+            %Matriz
+            A = [x1^3 x1^2 x1 1;
+                x2^3 x2^2 x2 1;
+                x3^3 x3^2 x3 1;
+                x4^3 x4^2 x4 1];
+            Y = [y1; y2; y3; y4];
+            
+            %Calculando los coeficiente
+            x = inv(A)*Y;
+            coef = x; %vector de coeficientes
+            %===================
+            
+            % MAXIMOS Y MINIMOS
+            
+            
+            %RADIO DE CURBATURA
+            
+            %coeficiente de la primera derivada
+            a1g = coef(1)*3;
+            b1g =coef(2)*2;
+            c1g =coef(3);
+            
+            %Coeficiente de la segunda derivada
+            a2g = a1g*2;
+            b2g =b1g;
+   
+        
+            %==========================
+            
+                                    %GRAFICANDO LA FUNCION
+            
+            %Usnado la funcion cuadratica con los coeficientes conseguidos
+            yf = @(z) coef(1).*z.^3+coef(2).*z.^2+coef(3).*z+coef(4);
+            
+
+                       %Imprimiendo en pantalla
+            zv =linspace(x1,x4,1000);
+            plot(app.UIAxesSimulacion,zv,yf(zv),"black","LineWidth",0.5,"LineStyle","--")
+            hold(app.UIAxesSimulacion,"on")
+
+            plot(app.UIAxesSimulacion,x1,y1,'r-o')
+            hold(app.UIAxesSimulacion,"on")
+
+            plot(app.UIAxesSimulacion,x4,y4,'r-o')
+            hold(app.UIAxesSimulacion,"on")
+
+            %=========================================
+            %=========================================
+            %=============Simulacion==================
+            %=========================================
+            %=========================================
+            %=========================================
+
+            %Econtrando donde empieza la zona de riesgo
+            validadorDescarrilo = 0;
+            Xmin1 = x1;
+            RadioCurbaturaMomentanio = 101;
+            while (RadioCurbaturaMomentanio > 100) && validadorDescarrilo <= 0
+            
+            primDeri2 = a1g.*Xmin1.^2+b1g.*Xmin1+c1g;
+            segunDeri2 = a2g.*Xmin1+b2g;
+            RadioCurbaturaMomentanio = ((1+primDeri2.^2).^3/2)./abs(segunDeri2);
+
+            
+            Xmin1 = Xmin1 + 0.1;
+            end
+            
+            
+            %Generando la recta tangente
+            pendienteXmin1 = a1g.*Xmin1.^2+b1g.*Xmin1+c1g;
+            valorYXmin1 = coef(1)*Xmin1^3+coef(2)*Xmin1^2+coef(3)*Xmin1+coef(4);
+            ValorBXmin1 = valorYXmin1 - (pendienteXmin1*Xmin1);
+
+            
+            %Graficando las gradas
+            FuncionRectaTanXmin1 = @(x) pendienteXmin1.*x+(ValorBXmin1+20);
+            x =linspace(Xmin1,Xmin1+80,20);
+            plot(app.UIAxesSimulacion,x,FuncionRectaTanXmin1(x),"b","LineWidth",0.5,"Marker","o",MarkerSize=6)
+            hold(app.UIAxesSimulacion,"on")
+            
+            %=================
+            
+            %Econtrando hasta donde llega la primera zona de riesgo
+            
+            Xmin2 = Xmin1;
+            while (RadioCurbaturaMomentanio < 100) && validadorDescarrilo <= 0
+            
+            primDeri2 = a1g.*Xmin2.^2+b1g.*Xmin2+c1g;
+            segunDeri2 = a2g.*Xmin2+b2g;
+            RadioCurbaturaMomentanio = ((1+primDeri2.^2).^3/2)./abs(segunDeri2);
+            
+                
+            %app.RadioDeCurbatura.Value = num2str(RadioCurbaturaMomentanio);
+
+
+            Xmin2 = Xmin2 + 0.1;
+
+            velociadMaxima = sqrt(9.81*cfricEstatica*RadioCurbaturaMomentanio);
+                if (velocidadConstanteCoche >velociadMaxima) && validadorDescarrilo <= 0
+                
+                    %distacia total recorridad
+                    distaciaRecorrida = (velocidadConstanteCoche^2)/(2*cfricCinetica*9.81);
+                
+                    %Generando la recta tangente
+                    pendienteXmin2 = a1g.*Xmin2.^2+b1g.*Xmin2+c1g;
+                    valorYXmin2 = coef(1)*Xmin2^3+coef(2)*Xmin2^2+coef(3)*Xmin2+coef(4);
+                    ValorBXmin2 = valorYXmin2 - (pendienteXmin2*Xmin2);
+     
+                    validadorDescarrilo = validadorDescarrilo + 1;
+                
+                    total_energia_kinetica_perdida = (1/2)*(masa)*(velociadMaxima^2);
+                    app.EnergiacineticaperdidaEditField.Value = total_energia_kinetica_perdida;
+                    app.DistanciaderrapadaEditField.Value = distaciaRecorrida;
+                    app.VelocidadmaximaEditField.Value = velociadMaxima;
+                    app.Radio.Value = RadioCurbaturaMomentanio;
+                
+                end
+            end
+
+
+            
+            %===========================
+            
+            %Econtrando donde empieza la segunda zona de riesgo
+            Xmax1 = Xmin2;
+            while (RadioCurbaturaMomentanio > 100) && validadorDescarrilo <= 0
+            
+            primDeri2 = a1g.*Xmax1.^2+b1g.*Xmax1+c1g;
+            segunDeri2 = a2g.*Xmax1+b2g;
+            RadioCurbaturaMomentanio = ((1+primDeri2.^2).^3/2)./abs(segunDeri2);
+            Xmax1 = Xmax1 + 0.1;
+        
+            end
+            
+            %=======================
+            
+            %Econtrando donde termina la zona de riesgo
+            
+            Xmax2 = Xmax1;
+            while (Xmax2 >= x4) && validadorDescarrilo <= 0
+            
+            primDeri2 = a1g.*Xmax2.^2+b1g.*Xmax2+c1g;
+            segunDeri2 = a2g.*Xmax2+b2g;
+            RadioCurbaturaMomentanio = ((1+primDeri2.^2).^3/2)./abs(segunDeri2);
+            Xmax2 = Xmax2 + 0.1;
+
+            velociadMaxima = sqrt(9.81*cfricEstatica*RadioCurbaturaMomentanio);
+                if (velocidadConstanteCoche >velociadMaxima) && validadorDescarrilo <= 0
+                
+                    %distacia total recorridad
+                    distaciaRecorrida = (velocidadConstanteCoche^2)/(2*cfricCinetica*9.81);
+                    %graficando la recta tangente descarri
+                    x =linspace(Xmax2,Xmax2+distaciaRecorrida,2);
+                    plot(x,FuncionRectaTanXmax2(x))
+                    hold on
+                    validadorDescarrilo = validadorDescarrilo + 1;
+                
+                    total_energia_kinetica_perdida = (1/2)*(masa)*(velociadMaxima^2);
+
+                    app.EnergiacineticaperdidaEditField.Value = total_energia_kinetica_perdida;
+                    app.DistanciaderrapadaEditField.Value = distaciaRecorrida;
+                    app.VelocidadmaximaEditField.Value = velociadMaxima;
+                    app.Radio.Value = RadioCurbaturaMomentanio;
+                
+                
+                end
+             
+            end
+
+            Xfinal = Xmax2;
+            while (RadioCurbaturaMomentanio > 100) && validadorDescarrilo <= 0 && Xfinal <= x4
+            
+            primDeri2 = a1g.*Xfinal.^2+b1g.*Xfinal+c1g;
+            segunDeri2 = a2g.*Xfinal+b2g;
+            RadioCurbaturaMomentanio = ((1+primDeri2.^2).^3/2)./abs(segunDeri2);
+            Xfinal = Xfinal + 0.1;
+        
+            end
+
+            if validadorDescarrilo <=0
+               
+                zv =linspace(x1,x4,1000);
+                comet(app.UIAxesSimulacion,zv,yf(zv))
+
+            else
+                
+                zv =linspace(x1,Xfinal,100);
+                comet(app.UIAxesSimulacion,zv,yf(zv))
+
+                                %Generando la recta tangente
+                pendienteXfinal = a1g.*Xfinal.^2+b1g.*Xfinal+c1g;
+                valorYXfinal = coef(1)*Xfinal^3+coef(2)*Xfinal^2+coef(3)*Xfinal+coef(4);
+                ValorBXfinal = valorYXfinal - (pendienteXfinal*Xfinal);
+                FuncionRectaTanXfinal = @(x) pendienteXfinal.*x+ValorBXfinal;
+                %graficando la recta tangente descarri
+                zv =linspace(Xfinal,Xfinal+distaciaRecorrida,50);
+                comet(app.UIAxesSimulacion,zv,FuncionRectaTanXfinal(zv))
+                
+
+                
+            end
+
+
+
+            
+            %Longuitud de arco
+            a1g = coef(1)*3;
+            b1g =coef(2)*2;
+            c1g =coef(3);
+            funcionLongitudArco = @(x) sqrt(1+(a1g.*x.^2+b1g.*x+c1g).^2);% funcion
+            IntegralLonguitudArco = integral(funcionLongitudArco,x1,Xfinal);% integrando la funcion y sacando la longuitud de arco
+
+            if validadorDescarrilo <=0
+                IntegralLonguitudArco = integral(funcionLongitudArco,x1,x4);
+            app.DistanciarecorridatotalEditField.Value = IntegralLonguitudArco;
+            app.TiempoconducidosegundosEditField.Value = IntegralLonguitudArco / app.VelocidadAuto.Value;
+            else
+                app.DistanciarecorridatotalEditField.Value = (IntegralLonguitudArco + distaciaRecorrida);
+                app.TiempoconducidosegundosEditField.Value = (IntegralLonguitudArco + distaciaRecorrida) / app.VelocidadAuto.Value;
+            end
+
+
+            
+        end
+
+        % Changes arrangement of the app based on UIFigure width
+        function updateAppLayout(app, event)
+            currentFigureWidth = app.UIFigure.Position(3);
+            if(currentFigureWidth <= app.onePanelWidth)
+                % Change to a 2x1 grid
+                app.GridLayout.RowHeight = {480, 480};
+                app.GridLayout.ColumnWidth = {'1x'};
+                app.RightPanel.Layout.Row = 2;
+                app.RightPanel.Layout.Column = 1;
+            else
+                % Change to a 1x2 grid
+                app.GridLayout.RowHeight = {'1x'};
+                app.GridLayout.ColumnWidth = {207, '1x'};
+                app.RightPanel.Layout.Row = 1;
+                app.RightPanel.Layout.Column = 2;
+            end
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.AutoResizeChildren = 'off';
+            app.UIFigure.Position = [100 100 640 480];
+            app.UIFigure.Name = 'MATLAB App';
+            app.UIFigure.SizeChangedFcn = createCallbackFcn(app, @updateAppLayout, true);
+
+            % Create GridLayout
+            app.GridLayout = uigridlayout(app.UIFigure);
+            app.GridLayout.ColumnWidth = {207, '1x'};
+            app.GridLayout.RowHeight = {'1x'};
+            app.GridLayout.ColumnSpacing = 0;
+            app.GridLayout.RowSpacing = 0;
+            app.GridLayout.Padding = [0 0 0 0];
+            app.GridLayout.Scrollable = 'on';
+
+            % Create LeftPanel
+            app.LeftPanel = uipanel(app.GridLayout);
+            app.LeftPanel.Layout.Row = 1;
+            app.LeftPanel.Layout.Column = 1;
+
+            % Create VelodicadautoEditFieldLabel
+            app.VelodicadautoEditFieldLabel = uilabel(app.LeftPanel);
+            app.VelodicadautoEditFieldLabel.HorizontalAlignment = 'right';
+            app.VelodicadautoEditFieldLabel.Position = [15 440 84 22];
+            app.VelodicadautoEditFieldLabel.Text = 'Velodicad auto';
+
+            % Create VelocidadAuto
+            app.VelocidadAuto = uieditfield(app.LeftPanel, 'numeric');
+            app.VelocidadAuto.Limits = [0 Inf];
+            app.VelocidadAuto.Position = [111 440 84 22];
+            app.VelocidadAuto.Value = 18;
+
+            % Create X1EditFieldLabel
+            app.X1EditFieldLabel = uilabel(app.LeftPanel);
+            app.X1EditFieldLabel.HorizontalAlignment = 'right';
+            app.X1EditFieldLabel.Position = [58 312 25 22];
+            app.X1EditFieldLabel.Text = 'X1';
+
+            % Create X1
+            app.X1 = uieditfield(app.LeftPanel, 'numeric');
+            app.X1.Limits = [0 Inf];
+            app.X1.Position = [98 312 100 22];
+            app.X1.Value = 100;
+
+            % Create Y1EditFieldLabel
+            app.Y1EditFieldLabel = uilabel(app.LeftPanel);
+            app.Y1EditFieldLabel.HorizontalAlignment = 'right';
+            app.Y1EditFieldLabel.Position = [58 291 25 22];
+            app.Y1EditFieldLabel.Text = 'Y1';
+
+            % Create Y1
+            app.Y1 = uieditfield(app.LeftPanel, 'numeric');
+            app.Y1.Limits = [0 Inf];
+            app.Y1.Position = [98 291 100 22];
+            app.Y1.Value = 1700;
+
+            % Create X2EditFieldLabel
+            app.X2EditFieldLabel = uilabel(app.LeftPanel);
+            app.X2EditFieldLabel.HorizontalAlignment = 'right';
+            app.X2EditFieldLabel.Position = [58 262 25 22];
+            app.X2EditFieldLabel.Text = 'X2';
+
+            % Create X2
+            app.X2 = uieditfield(app.LeftPanel, 'numeric');
+            app.X2.Limits = [0 Inf];
+            app.X2.Position = [98 262 100 22];
+            app.X2.Value = 1280;
+
+            % Create Y2EditFieldLabel
+            app.Y2EditFieldLabel = uilabel(app.LeftPanel);
+            app.Y2EditFieldLabel.HorizontalAlignment = 'right';
+            app.Y2EditFieldLabel.Position = [58 241 25 22];
+            app.Y2EditFieldLabel.Text = 'Y2';
+
+            % Create Y2
+            app.Y2 = uieditfield(app.LeftPanel, 'numeric');
+            app.Y2.Limits = [0 Inf];
+            app.Y2.Position = [98 241 100 22];
+            app.Y2.Value = 1800;
+
+            % Create X3EditFieldLabel
+            app.X3EditFieldLabel = uilabel(app.LeftPanel);
+            app.X3EditFieldLabel.HorizontalAlignment = 'right';
+            app.X3EditFieldLabel.Position = [58 211 25 22];
+            app.X3EditFieldLabel.Text = 'X3';
+
+            % Create X3
+            app.X3 = uieditfield(app.LeftPanel, 'numeric');
+            app.X3.Limits = [0 Inf];
+            app.X3.Position = [98 211 100 22];
+            app.X3.Value = 1750;
+
+            % Create Y3EditFieldLabel
+            app.Y3EditFieldLabel = uilabel(app.LeftPanel);
+            app.Y3EditFieldLabel.HorizontalAlignment = 'right';
+            app.Y3EditFieldLabel.Position = [58 190 25 22];
+            app.Y3EditFieldLabel.Text = 'Y3';
+
+            % Create Y3
+            app.Y3 = uieditfield(app.LeftPanel, 'numeric');
+            app.Y3.Limits = [0 Inf];
+            app.Y3.Position = [98 190 100 22];
+            app.Y3.Value = 300;
+
+            % Create X4
+            app.X4 = uieditfield(app.LeftPanel, 'numeric');
+            app.X4.Limits = [0 Inf];
+            app.X4.Position = [98 157 100 22];
+            app.X4.Value = 2800;
+
+            % Create Y4
+            app.Y4 = uieditfield(app.LeftPanel, 'numeric');
+            app.Y4.Limits = [0 Inf];
+            app.Y4.Position = [98 136 100 22];
+            app.Y4.Value = 200;
+
+            % Create GraficarpistaButton
+            app.GraficarpistaButton = uibutton(app.LeftPanel, 'push');
+            app.GraficarpistaButton.ButtonPushedFcn = createCallbackFcn(app, @GraficarpistaButtonPushed, true);
+            app.GraficarpistaButton.Position = [16 82 182 41];
+            app.GraficarpistaButton.Text = 'Graficar pista';
+
+            % Create X4EditFieldLabel
+            app.X4EditFieldLabel = uilabel(app.LeftPanel);
+            app.X4EditFieldLabel.HorizontalAlignment = 'right';
+            app.X4EditFieldLabel.Position = [58 157 25 22];
+            app.X4EditFieldLabel.Text = 'X4';
+
+            % Create Y4EditFieldLabel
+            app.Y4EditFieldLabel = uilabel(app.LeftPanel);
+            app.Y4EditFieldLabel.HorizontalAlignment = 'right';
+            app.Y4EditFieldLabel.Position = [58 136 25 22];
+            app.Y4EditFieldLabel.Text = 'Y4';
+
+            % Create coeficientefriccionestaticaLabel
+            app.coeficientefriccionestaticaLabel = uilabel(app.LeftPanel);
+            app.coeficientefriccionestaticaLabel.HorizontalAlignment = 'right';
+            app.coeficientefriccionestaticaLabel.Position = [3 408 151 22];
+            app.coeficientefriccionestaticaLabel.Text = 'Coeficiente friccion estatica';
+
+            % Create FriccionEstatica
+            app.FriccionEstatica = uieditfield(app.LeftPanel, 'numeric');
+            app.FriccionEstatica.Limits = [0 Inf];
+            app.FriccionEstatica.Position = [162 408 34 22];
+            app.FriccionEstatica.Value = 0.523;
+
+            % Create coeficientefriccionestaticaLabel_2
+            app.coeficientefriccionestaticaLabel_2 = uilabel(app.LeftPanel);
+            app.coeficientefriccionestaticaLabel_2.HorizontalAlignment = 'right';
+            app.coeficientefriccionestaticaLabel_2.Position = [3 374 150 22];
+            app.coeficientefriccionestaticaLabel_2.Text = 'Coeficiente friccion cinetica';
+
+            % Create FriccionCinetica
+            app.FriccionCinetica = uieditfield(app.LeftPanel, 'numeric');
+            app.FriccionCinetica.Limits = [0 Inf];
+            app.FriccionCinetica.Position = [161 374 34 22];
+            app.FriccionCinetica.Value = 0.3;
+
+            % Create coeficientefriccionestaticaLabel_3
+            app.coeficientefriccionestaticaLabel_3 = uilabel(app.LeftPanel);
+            app.coeficientefriccionestaticaLabel_3.HorizontalAlignment = 'right';
+            app.coeficientefriccionestaticaLabel_3.Position = [16 344 89 22];
+            app.coeficientefriccionestaticaLabel_3.Text = 'Masa del coche';
+
+            % Create Masa
+            app.Masa = uieditfield(app.LeftPanel, 'numeric');
+            app.Masa.Limits = [0 Inf];
+            app.Masa.Position = [113 344 82 22];
+            app.Masa.Value = 1500;
+
+            % Create IniciarsimulacionButton
+            app.IniciarsimulacionButton = uibutton(app.LeftPanel, 'push');
+            app.IniciarsimulacionButton.ButtonPushedFcn = createCallbackFcn(app, @IniciarsimulacionButtonPushed, true);
+            app.IniciarsimulacionButton.BackgroundColor = [0.6353 0.0784 0.1843];
+            app.IniciarsimulacionButton.Position = [15 31 183 45];
+            app.IniciarsimulacionButton.Text = 'Iniciar simulacion';
+
+            % Create RightPanel
+            app.RightPanel = uipanel(app.GridLayout);
+            app.RightPanel.Layout.Row = 1;
+            app.RightPanel.Layout.Column = 2;
+
+            % Create TabGroup
+            app.TabGroup = uitabgroup(app.RightPanel);
+            app.TabGroup.Position = [6 8 421 454];
+
+            % Create GraficapistaTab
+            app.GraficapistaTab = uitab(app.TabGroup);
+            app.GraficapistaTab.Title = 'Grafica pista';
+
+            % Create UIAxesPistaCompleta
+            app.UIAxesPistaCompleta = uiaxes(app.GraficapistaTab);
+            title(app.UIAxesPistaCompleta, 'Grafica pista')
+            xlabel(app.UIAxesPistaCompleta, 'X')
+            ylabel(app.UIAxesPistaCompleta, 'Y')
+            zlabel(app.UIAxesPistaCompleta, 'Z')
+            app.UIAxesPistaCompleta.Position = [9 107 395 305];
+
+            % Create LoguituddearcopistacompletaLabel
+            app.LoguituddearcopistacompletaLabel = uilabel(app.GraficapistaTab);
+            app.LoguituddearcopistacompletaLabel.HorizontalAlignment = 'right';
+            app.LoguituddearcopistacompletaLabel.Position = [13 82 175 22];
+            app.LoguituddearcopistacompletaLabel.Text = 'Loguitud de arco pista completa';
+
+            % Create LonguitudArco
+            app.LonguitudArco = uieditfield(app.GraficapistaTab, 'text');
+            app.LonguitudArco.Editable = 'off';
+            app.LonguitudArco.Position = [190 82 75 22];
+
+            % Create MenorradiodeprimeracurvaLabel
+            app.MenorradiodeprimeracurvaLabel = uilabel(app.GraficapistaTab);
+            app.MenorradiodeprimeracurvaLabel.HorizontalAlignment = 'right';
+            app.MenorradiodeprimeracurvaLabel.Position = [9 53 162 22];
+            app.MenorradiodeprimeracurvaLabel.Text = 'Menor radio de primera curva';
+
+            % Create MenorRadioCurvatura
+            app.MenorRadioCurvatura = uieditfield(app.GraficapistaTab, 'text');
+            app.MenorRadioCurvatura.Editable = 'off';
+            app.MenorRadioCurvatura.Position = [190 53 75 22];
+
+            % Create MenorradiodesegundacuvaLabel
+            app.MenorradiodesegundacuvaLabel = uilabel(app.GraficapistaTab);
+            app.MenorradiodesegundacuvaLabel.HorizontalAlignment = 'right';
+            app.MenorradiodesegundacuvaLabel.Position = [9 31 164 22];
+            app.MenorradiodesegundacuvaLabel.Text = 'Menor radio de segunda cuva';
+
+            % Create MenorRadioCurvatura_2
+            app.MenorRadioCurvatura_2 = uieditfield(app.GraficapistaTab, 'text');
+            app.MenorRadioCurvatura_2.Editable = 'off';
+            app.MenorRadioCurvatura_2.Position = [190 31 75 22];
+
+            % Create VelocidadMaximaPistaEditFieldLabel
+            app.VelocidadMaximaPistaEditFieldLabel = uilabel(app.GraficapistaTab);
+            app.VelocidadMaximaPistaEditFieldLabel.HorizontalAlignment = 'right';
+            app.VelocidadMaximaPistaEditFieldLabel.Position = [13 2 132 22];
+            app.VelocidadMaximaPistaEditFieldLabel.Text = 'Velocidad Maxima Pista';
+
+            % Create VelocidadMaximaPistaEditField
+            app.VelocidadMaximaPistaEditField = uieditfield(app.GraficapistaTab, 'numeric');
+            app.VelocidadMaximaPistaEditField.Editable = 'off';
+            app.VelocidadMaximaPistaEditField.Position = [190 2 75 22];
+
+            % Create LonguitudEditFieldLabel
+            app.LonguitudEditFieldLabel = uilabel(app.GraficapistaTab);
+            app.LonguitudEditFieldLabel.HorizontalAlignment = 'right';
+            app.LonguitudEditFieldLabel.Position = [271 52 58 22];
+            app.LonguitudEditFieldLabel.Text = 'Longuitud';
+
+            % Create LonguitudEditField
+            app.LonguitudEditField = uieditfield(app.GraficapistaTab, 'text');
+            app.LonguitudEditField.Position = [343 52 69 22];
+
+            % Create LonguitudEditField_2Label
+            app.LonguitudEditField_2Label = uilabel(app.GraficapistaTab);
+            app.LonguitudEditField_2Label.HorizontalAlignment = 'right';
+            app.LonguitudEditField_2Label.Position = [271 32 58 22];
+            app.LonguitudEditField_2Label.Text = 'Longuitud';
+
+            % Create LonguitudEditField_2
+            app.LonguitudEditField_2 = uieditfield(app.GraficapistaTab, 'text');
+            app.LonguitudEditField_2.Position = [343 32 69 22];
+
+            % Create SimulacionTab
+            app.SimulacionTab = uitab(app.TabGroup);
+            app.SimulacionTab.Title = 'Simulacion';
+
+            % Create UIAxesSimulacion
+            app.UIAxesSimulacion = uiaxes(app.SimulacionTab);
+            title(app.UIAxesSimulacion, 'Simulacion')
+            xlabel(app.UIAxesSimulacion, 'X')
+            ylabel(app.UIAxesSimulacion, 'Y')
+            zlabel(app.UIAxesSimulacion, 'Z')
+            app.UIAxesSimulacion.Position = [9 137 403 285];
+
+            % Create RadiodecuvaturaEditFieldLabel
+            app.RadiodecuvaturaEditFieldLabel = uilabel(app.SimulacionTab);
+            app.RadiodecuvaturaEditFieldLabel.HorizontalAlignment = 'right';
+            app.RadiodecuvaturaEditFieldLabel.Position = [21 44 102 22];
+            app.RadiodecuvaturaEditFieldLabel.Text = 'Radio de cuvatura';
+
+            % Create Radio
+            app.Radio = uieditfield(app.SimulacionTab, 'numeric');
+            app.Radio.Position = [138 44 100 22];
+
+            % Create EnergiacineticaperdidaEditFieldLabel
+            app.EnergiacineticaperdidaEditFieldLabel = uilabel(app.SimulacionTab);
+            app.EnergiacineticaperdidaEditFieldLabel.HorizontalAlignment = 'right';
+            app.EnergiacineticaperdidaEditFieldLabel.Position = [161 23 134 22];
+            app.EnergiacineticaperdidaEditFieldLabel.Text = 'Energia cinetica perdida';
+
+            % Create EnergiacineticaperdidaEditField
+            app.EnergiacineticaperdidaEditField = uieditfield(app.SimulacionTab, 'numeric');
+            app.EnergiacineticaperdidaEditField.Editable = 'off';
+            app.EnergiacineticaperdidaEditField.Position = [310 23 100 22];
+
+            % Create DistanciaderrapadaEditFieldLabel
+            app.DistanciaderrapadaEditFieldLabel = uilabel(app.SimulacionTab);
+            app.DistanciaderrapadaEditFieldLabel.HorizontalAlignment = 'right';
+            app.DistanciaderrapadaEditFieldLabel.Position = [183 65 112 22];
+            app.DistanciaderrapadaEditFieldLabel.Text = 'Distancia derrapada';
+
+            % Create DistanciaderrapadaEditField
+            app.DistanciaderrapadaEditField = uieditfield(app.SimulacionTab, 'numeric');
+            app.DistanciaderrapadaEditField.Editable = 'off';
+            app.DistanciaderrapadaEditField.Position = [310 65 100 22];
+
+            % Create VelocidadmaximaEditFieldLabel
+            app.VelocidadmaximaEditFieldLabel = uilabel(app.SimulacionTab);
+            app.VelocidadmaximaEditFieldLabel.HorizontalAlignment = 'right';
+            app.VelocidadmaximaEditFieldLabel.Position = [21 86 102 22];
+            app.VelocidadmaximaEditFieldLabel.Text = 'Velocidad maxima';
+
+            % Create VelocidadmaximaEditField
+            app.VelocidadmaximaEditField = uieditfield(app.SimulacionTab, 'numeric');
+            app.VelocidadmaximaEditField.Position = [138 86 100 22];
+
+            % Create DistanciarecorridatotalEditFieldLabel
+            app.DistanciarecorridatotalEditFieldLabel = uilabel(app.SimulacionTab);
+            app.DistanciarecorridatotalEditFieldLabel.HorizontalAlignment = 'right';
+            app.DistanciarecorridatotalEditFieldLabel.Position = [105 107 131 22];
+            app.DistanciarecorridatotalEditFieldLabel.Text = 'Distancia recorrida total';
+
+            % Create DistanciarecorridatotalEditField
+            app.DistanciarecorridatotalEditField = uieditfield(app.SimulacionTab, 'numeric');
+            app.DistanciarecorridatotalEditField.Position = [251 107 100 22];
+
+            % Create TiempoconducidosegundosEditFieldLabel
+            app.TiempoconducidosegundosEditFieldLabel = uilabel(app.SimulacionTab);
+            app.TiempoconducidosegundosEditFieldLabel.HorizontalAlignment = 'right';
+            app.TiempoconducidosegundosEditFieldLabel.Position = [11 2 158 22];
+            app.TiempoconducidosegundosEditFieldLabel.Text = 'Tiempo conducido segundos';
+
+            % Create TiempoconducidosegundosEditField
+            app.TiempoconducidosegundosEditField = uieditfield(app.SimulacionTab, 'numeric');
+            app.TiempoconducidosegundosEditField.Position = [172 2 67 22];
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = SimulacionPistaCarreras
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end
